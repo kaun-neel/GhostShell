@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>GhostShell</title>
+  <link rel="stylesheet" href="https://unpkg.com/xterm/css/xterm.css" />
+  <script src="https://unpkg.com/xterm/lib/xterm.js"></script>
+  <script src="https://unpkg.com/xterm-addon-fit/lib/xterm-addon-fit.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #0a0010;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      font-family: 'Segoe UI', sans-serif;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .shell-wrap {
+      width: 95vw;
+      height: 90vh;
+      background: #0d0f1a;
+      border-radius: 12px;
+      border: 0.5px solid #3d2d6e;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 0 80px rgba(188,140,255,0.07);
+    }
+
+    .titlebar {
+      background: #110d1f;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 0.5px solid #3d2d6e;
+      flex-shrink: 0;
+    }
+
+    .titlebar-left { display: flex; align-items: center; gap: 10px; }
+
+    .dots { display: flex; gap: 6px; }
+    .dot { width: 12px; height: 12px; border-radius: 50%; }
+    .dot-r { background: #ff5f57; }
+    .dot-y { background: #febc2e; }
+    .dot-g { background: #28c840; }
+
+    .title-name { color: #e2d9f3; font-weight: 600; font-size: 13px; }
+    .title-sub  { color: #6e5f8e; font-size: 12px; }
+
+    .badge {
+      background: #6e40c922;
+      border: 0.5px solid #6e40c966;
+      color: #bc8cff;
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 20px;
+    }
+
+    .toolbar {
+      background: #110d1f;
+      padding: 4px 16px 0;
+      display: flex;
+      gap: 4px;
+      border-bottom: 0.5px solid #3d2d6e;
+      flex-shrink: 0;
+    }
+
+    .tab {
+      color: #6e5f8e;
+      font-size: 12px;
+      padding: 6px 14px;
+      border-radius: 6px 6px 0 0;
+      cursor: pointer;
+    }
+
+    .tab.active {
+      background: #0d0f1a;
+      color: #e2d9f3;
+      border: 0.5px solid #3d2d6e;
+      border-bottom: none;
+    }
+
+    #terminal-container {
+      flex: 1;
+      padding: 8px;
+      overflow: hidden;
+    }
+
+    .statusbar {
+      background: #110d1f;
+      padding: 5px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-top: 0.5px solid #3d2d6e;
+      flex-shrink: 0;
+    }
+
+    .status-left { display: flex; align-items: center; gap: 16px; }
+
+    .status-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      color: #6e5f8e;
+    }
+
+    #status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #3fb950;
+      transition: background 0.3s;
+    }
+  </style>
+</head>
+<body>
+
+<div class="shell-wrap">
+
+  <div class="titlebar">
+    <div class="titlebar-left">
+      <div class="dots">
+        <div class="dot dot-r"></div>
+        <div class="dot dot-y"></div>
+        <div class="dot dot-g"></div>
+      </div>
+      <span class="title-name">GhostShell</span>
+      <span class="title-sub">— Haskell shell</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span class="badge">v1.0.0</span>
+      <span class="badge">WSL2</span>
+      <span class="badge" id="conn-badge">● connected</span>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <div class="tab active">shell 1</div>
+  </div>
+
+  <div id="terminal-container"></div>
+
+  <div class="statusbar">
+    <div class="status-left">
+      <div class="status-item">
+        <div id="status-dot"></div>
+        <span id="status-text">connected</span>
+      </div>
+      <div class="status-item">WSL2 · Ubuntu 22.04</div>
+      <div class="status-item">GHC 9.8.4</div>
+    </div>
+    <div class="status-item">localhost:3000</div>
+  </div>
+
+</div>
+
+<script>
+  const term = new Terminal({
+    cursorBlink: true,
+    fontSize: 14,
+    fontFamily: "'Cascadia Code', 'Consolas', monospace",
+    convertEol: true,
+    theme: {
+      background:    '#0d0f1a',
+      foreground:    '#e2d9f3',
+      cursor:        '#bc8cff',
+      cursorAccent:  '#0d0f1a',
+      black:         '#3d2d6e',
+      red:           '#ff7b72',
+      green:         '#3fb950',
+      yellow:        '#d29922',
+      blue:          '#79c0ff',
+      magenta:       '#bc8cff',
+      cyan:          '#39c5cf',
+      white:         '#c9b8e8',
+      brightBlack:   '#6e5f8e',
+      brightRed:     '#ffa198',
+      brightGreen:   '#56d364',
+      brightYellow:  '#e3b341',
+      brightBlue:    '#a5d6ff',
+      brightMagenta: '#d2a8ff',
+      brightCyan:    '#56d4dd',
+      brightWhite:   '#f0e6ff',
+      selectionBackground: '#3d2d6e',
+    },
+  });
+
+  const fitAddon = new FitAddon.FitAddon();
+  term.loadAddon(fitAddon);
+  term.open(document.getElementById('terminal-container'));
+  fitAddon.fit();
+  window.addEventListener('resize', () => fitAddon.fit());
+
+  const ws = new WebSocket(`ws://${location.host}`);
+  const statusDot  = document.getElementById('status-dot');
+  const statusText = document.getElementById('status-text');
+  const connBadge  = document.getElementById('conn-badge');
+
+  function setConnected(ok) {
+    const color = ok ? '#3fb950' : '#f85149';
+    statusDot.style.background = color;
+    connBadge.style.color = color;
+    statusText.textContent = ok ? 'connected' : 'disconnected';
+    connBadge.textContent  = ok ? '● connected' : '● disconnected';
+  }
+
+  ws.onopen = () => setConnected(true);
+
+  ws.onmessage = (event) => {
+    const msg = JSON.parse(event.data);
+    if (msg.type === 'output') {
+      term.write(msg.data);
+    } else if (msg.type === 'exit') {
+      term.writeln('\r\n\x1b[1;31mShell exited. Refresh to reconnect.\x1b[0m');
+      setConnected(false);
+    }
+  };
+
+  ws.onclose = () => setConnected(false);
+
+  // Track what user has typed for local display
+  let inputBuffer = '';
+
+  term.onKey(({ key, domEvent }) => {
+    if (ws.readyState !== WebSocket.OPEN) return;
+    // Just send everything to the shell, let shell handle all echo
+    ws.send(JSON.stringify({ data: key }));
+  });
+</script>
+</body>
+</html>
