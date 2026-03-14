@@ -14,7 +14,7 @@
 
 ---
 
-## 👻 What is GhostShell?
+## What is GhostShell?
 
 **GhostShell** is a fully functional Unix shell built entirely from scratch in **Haskell**, featuring a beautiful web-based terminal UI. It supports real shell features like command execution, I/O redirection, quote parsing, and intelligent tab completion — all implemented without any shell libraries.
 
@@ -149,7 +149,7 @@ User presses TAB
 
 ---
 
-## 📦 Tech Stack
+## Tech Stack
 
 | Layer | Technology |
 |---|---|
@@ -190,7 +190,7 @@ xyz<TAB><TAB>   # shows all xyz matches
 
 ---
 
-## 👨‍💻 Author
+## Author
 
 <div align="center">
 
@@ -198,8 +198,6 @@ xyz<TAB><TAB>   # shows all xyz matches
 
 B.Sc. Computer Science & Data Analytics
 Indian Institute of Technology Patna
-
-[![GitHub](https://img.shields.io/badge/GitHub-kaun--neel-bc8cff?style=for-the-badge&logo=github)](https://github.com/kaun-neel)
 
 </div>
 
