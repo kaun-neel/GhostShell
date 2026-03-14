@@ -224,13 +224,10 @@
   };
 
   ws.onclose = () => setConnected(false);
-
-  // Track what user has typed for local display
   let inputBuffer = '';
 
   term.onKey(({ key, domEvent }) => {
     if (ws.readyState !== WebSocket.OPEN) return;
-    // Just send everything to the shell, let shell handle all echo
     ws.send(JSON.stringify({ data: key }));
   });
 </script>

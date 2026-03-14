@@ -23,10 +23,7 @@ main = do
     hSetEcho stdin False
     repl
 
---------------------------------------------------
--- REPL
---------------------------------------------------
-
+-- REPL -- 
 repl :: IO ()
 repl = do
     putStr "$ "
@@ -35,10 +32,6 @@ repl = do
     putStrLn ""
     handleCommand line
     repl
-
---------------------------------------------------
--- Read characters (supports TAB)
---------------------------------------------------
 
 readLine :: String -> Bool -> IO String
 readLine buf lastWasTab = do
@@ -52,37 +45,29 @@ readLine buf lastWasTab = do
         '\t' -> do
             matches <- getMatches buf
             case matches of
-                -- no matches: bell
                 [] -> do
                     putChar '\x07'
                     hFlush stdout
                     readLine buf False
-
-                -- one or more matches: try LCP completion
                 _ -> do
                     let lcp = longestCommonPrefix matches
                     if length matches == 1 then do
-                        -- exactly one match: complete with trailing space
                         let newBuf = lcp ++ " "
                         let lineLen = length newBuf + 2
                         putStr ("\r" ++ replicate lineLen ' ' ++ "\r$ " ++ newBuf)
                         hFlush stdout
                         readLine newBuf False
                     else if lcp /= buf then do
-                        -- LCP extends current buf: complete to LCP (no trailing space)
                         let lineLen = length lcp + 2
                         putStr ("\r" ++ replicate lineLen ' ' ++ "\r$ " ++ lcp)
                         hFlush stdout
                         readLine lcp False
                     else do
-                        -- LCP == buf: multiple matches, can't reduce further
                         if not lastWasTab
-                            -- first TAB: bell
                             then do
                                 putChar '\x07'
                                 hFlush stdout
                                 readLine buf True
-                            -- second TAB: show all matches
                             else do
                                 let sorted = sort matches
                                 putStrLn ""
@@ -106,9 +91,6 @@ readLine buf lastWasTab = do
             hFlush stdout
             readLine (buf ++ [c]) False
 
---------------------------------------------------
--- Longest common prefix
---------------------------------------------------
 
 longestCommonPrefix :: [String] -> String
 longestCommonPrefix []     = ""
@@ -116,10 +98,6 @@ longestCommonPrefix [x]    = x
 longestCommonPrefix (x:xs) = foldl commonPrefix x xs
   where
     commonPrefix a b = map fst $ takeWhile (uncurry (==)) $ zip a b
-
---------------------------------------------------
--- TAB autocomplete helpers
---------------------------------------------------
 
 getMatches :: String -> IO [String]
 getMatches buf = do
@@ -155,10 +133,6 @@ getPathExecutables = do
             else do
                 perms <- getPermissions path `catch` ioErrorHandler emptyPermissions
                 return (executable perms)
-
---------------------------------------------------
--- Command execution
---------------------------------------------------
 
 handleCommand :: String -> IO ()
 handleCommand line = do
@@ -200,10 +174,6 @@ handleCommand line = do
 
             _ -> runExternal cmd args outFile errFile
 
---------------------------------------------------
--- stdout helper
---------------------------------------------------
-
 writeStdout :: Maybe (FilePath,Bool) -> String -> IO ()
 writeStdout Nothing txt = putStrLn txt
 writeStdout (Just (file,append)) txt = do
@@ -212,9 +182,7 @@ writeStdout (Just (file,append)) txt = do
     hPutStrLn h txt
     hClose h
 
---------------------------------------------------
--- cd builtin
---------------------------------------------------
+-- cd builtin --
 
 runCd :: [String] -> IO ()
 runCd [] = return ()
@@ -225,9 +193,7 @@ runCd (dir:_) = do
         Left _  -> putStrLn ("cd: " ++ dir ++ ": No such file or directory")
         Right _ -> return ()
 
---------------------------------------------------
--- type builtin
---------------------------------------------------
+-- type builtin --
 
 runType :: [String] -> IO String
 runType [] = return ""
@@ -240,10 +206,6 @@ runType (cmd:_) =
         case res of
             Just p  -> return (cmd ++ " is " ++ p)
             Nothing -> return (cmd ++ ": not found")
-
---------------------------------------------------
--- external commands
---------------------------------------------------
 
 runExternal :: String -> [String] -> Maybe (FilePath,Bool) -> Maybe (FilePath,Bool) -> IO ()
 runExternal cmd args outF errF = do
@@ -278,9 +240,7 @@ runExternal cmd args outF errF = do
             maybe (return ()) hClose outHandle
             maybe (return ()) hClose errHandle
 
---------------------------------------------------
--- PATH search
---------------------------------------------------
+-- PATH search --
 
 findExecutableInPath :: String -> [FilePath] -> IO (Maybe FilePath)
 findExecutableInPath _ [] = return Nothing
@@ -294,10 +254,6 @@ findExecutableInPath cmd (d:ds) = do
         if executable perms
             then return (Just p)
             else findExecutableInPath cmd ds
-
---------------------------------------------------
--- redirection parser
---------------------------------------------------
 
 parseRedirect :: [String] -> ([String], Maybe (FilePath,Bool), Maybe (FilePath,Bool))
 parseRedirect xs = go xs [] Nothing Nothing
@@ -314,10 +270,6 @@ parseRedirect xs = go xs [] Nothing Nothing
     go ("2>>":f:rest) cmd out _ = go rest cmd out (Just (f,True))
 
     go (x:rest) cmd out err = go rest (x:cmd) out err
-
---------------------------------------------------
--- argument parser
---------------------------------------------------
 
 parseArgs :: String -> [String]
 parseArgs input = reverse (go input Normal "" [])
